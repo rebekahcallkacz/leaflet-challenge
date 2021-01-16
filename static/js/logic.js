@@ -23,8 +23,8 @@ function createFeatures(earthquakeData) {
         let mag = feature.properties.mag
         let properties = {fillOpacity: 0.8, weight: 1, color: 'white', fillColor: colorScale(mag), radius: sizeScale(mag)}
         return L.circleMarker(latlng, properties)
-        .bindPopup("<h3>" + feature.properties.place +
-        "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
+        .bindPopup("<h3>Location: " + feature.properties.place +
+        "</h3><hr><p>Time of Occurence: " + new Date(feature.properties.time) + "</p><p>Magnitude: " + feature.properties.mag + "</p>");
     }
   
     // Create a GeoJSON layer containing the features array on the earthquakeData object
