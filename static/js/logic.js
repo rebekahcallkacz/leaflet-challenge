@@ -1,13 +1,15 @@
 // URL to retrieve data
-var longUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson'
+var longUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson';
 
 // Simple URL
-var queryUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson'
-// Import in all earthquakes from last 30 days
+var queryUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson';
+
+// Import in all earthquakes from last 30 days and initiate map
 d3.json(longUrl).then((data) => {
-    createFeatures(data.features)
+    createFeatures(data.features);
 })
 
+// This function requires geoJSON features data and maps each earthquake w/ circular markers and a popup 
 function createFeatures(earthquakeData) {
     // Create scales for magnitude markers
     var min = d3.min(earthquakeData.map(function(d) {return d.properties.mag}));
@@ -25,7 +27,7 @@ function createFeatures(earthquakeData) {
         return L.circleMarker(latlng, properties)
         .bindPopup("<h3>Location: " + feature.properties.place +
         "</h3><hr><p>Time of Occurence: " + new Date(feature.properties.time) + "</p><p>Magnitude: " + feature.properties.mag + "</p>");
-    }
+    };
   
     // Create a GeoJSON layer containing the features array on the earthquakeData object
     // Run the onEachFeature function once for each piece of data in the array
@@ -33,14 +35,17 @@ function createFeatures(earthquakeData) {
         pointToLayer: createCircle
 
     });
+
+    // Create a GeoJSON layer containing the tectonic plate boundaries
+    var tectonic_plates = L.geoJSON(tect_data.features, {style: {color: 'orange'}});
   
-    // Sending our earthquakes layer to the createMap function
-    createMap(earthquakes, min, max, colors);
+    // Sending our earthquakes and tectonic plates layers to the createMap function along with the color scale info for the legend
+    createMap(earthquakes, min, max, colors, tectonic_plates);
   }
   
-  function createMap(earthquakes, min, max, colors) {
+  function createMap(earthquakes, min, max, colors, tectonic_plates) {
   
-    // Define streetmap and darkmap layers
+    // Define satellite and outdoors map layers
     var satellitemap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
       attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
       tileSize: 512,
@@ -65,7 +70,8 @@ function createFeatures(earthquakeData) {
   
     // Create overlay object to hold our overlay layer
     var overlayMaps = {
-      Earthquakes: earthquakes
+      Earthquakes: earthquakes,
+      "Fault Lines": tectonic_plates
     };
   
     // Create our map, giving it the streetmap and earthquakes layers to display on load
@@ -86,6 +92,7 @@ function createFeatures(earthquakeData) {
 
     // Add earthquake marker legend
     var legend_quakes = L.control({position: 'bottomright'});
+    // Set up info about color scale
     var colorScale = d3.scaleQuantile().domain([max, min]).range(colors);
     var thresholds = colorScale.quantiles().map(function (i) { return i.toFixed(2)});
 
@@ -103,6 +110,6 @@ function createFeatures(earthquakeData) {
     
         return div;
     };
-
-    legend_quakes.addTo(myMap)
+    // Add legend to map
+    legend_quakes.addTo(myMap);
   }
