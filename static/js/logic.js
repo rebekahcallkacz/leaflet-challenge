@@ -1,4 +1,7 @@
-// URL to retrieve data
+// Import in tectonic plate geoJSON url
+var tect_data_url = "http://127.0.0.1:5500/12-Mapping-Web/leaflet-challenge/tect-plates.json"
+
+// URL to retrieve data 
 var longUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson';
 
 // Simple URL
@@ -37,10 +40,11 @@ function createFeatures(earthquakeData) {
     });
 
     // Create a GeoJSON layer containing the tectonic plate boundaries
-    var tectonic_plates = L.geoJSON(tect_data.features, {style: {color: 'orange'}});
-  
-    // Sending our earthquakes and tectonic plates layers to the createMap function along with the color scale info for the legend
-    createMap(earthquakes, min, max, colors, tectonic_plates);
+    d3.json(tect_data_url).then((tect_data) =>{
+        var tectonic_plates = L.geoJSON(tect_data.features, {style: {color: 'orange'}});
+        // Sending our earthquakes and tectonic plates layers to the createMap function along with the color scale info for the legend
+        createMap(earthquakes, min, max, colors, tectonic_plates);
+    })
   }
   
   function createMap(earthquakes, min, max, colors, tectonic_plates) {
