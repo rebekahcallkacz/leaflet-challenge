@@ -12,7 +12,7 @@ function createFeatures(earthquakeData) {
     // Create scales for magnitude markers
     var min = d3.min(earthquakeData.map(function(d) {return d.properties.mag}));
     var max = d3.max(earthquakeData.map(function(d) {return d.properties.mag}));
-    var sizeScale = d3.scaleLinear().domain([min, max]).range([1, 20]);
+    var sizeScale = d3.scaleLinear().domain([min, max]).range([1, 10]);
     var colors = ['#f2d0a4', '#be6a7f', '#870058'];
     var colorScale = d3.scaleQuantile().domain([max, min]).range(colors);
 
@@ -35,32 +35,32 @@ function createFeatures(earthquakeData) {
     });
   
     // Sending our earthquakes layer to the createMap function
-    createMap(earthquakes);
+    createMap(earthquakes, min, max, colors);
   }
   
-  function createMap(earthquakes) {
+  function createMap(earthquakes, min, max, colors) {
   
     // Define streetmap and darkmap layers
-    var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    var satellitemap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
       attribution: "© <a href='https://www.mapbox.com/about/maps/'>Mapbox</a> © <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> <strong><a href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a></strong>",
       tileSize: 512,
       maxZoom: 18,
       zoomOffset: -1,
-      id: "mapbox/streets-v11",
+      id: "satellite-streets-v11",
       accessToken: API_KEY
     });
   
-    var darkmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
+    var outdoorsmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}", {
       attribution: "Map data &copy; <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>, Imagery © <a href=\"https://www.mapbox.com/\">Mapbox</a>",
       maxZoom: 18,
-      id: "dark-v10",
+      id: "outdoors-v11",
       accessToken: API_KEY
     });
   
     // Define a baseMaps object to hold our base layers
     var baseMaps = {
-      "Street Map": streetmap,
-      "Dark Map": darkmap
+      "Satellite": satellitemap,
+      "Outdoors": outdoorsmap
     };
   
     // Create overlay object to hold our overlay layer
@@ -74,7 +74,7 @@ function createFeatures(earthquakeData) {
         37.09, -95.71
       ],
       zoom: 5,
-      layers: [streetmap, earthquakes]
+      layers: [satellitemap, earthquakes]
     });
   
     // Create a layer control
@@ -83,4 +83,25 @@ function createFeatures(earthquakeData) {
     L.control.layers(baseMaps, overlayMaps, {
       collapsed: false
     }).addTo(myMap);
+
+    var legend_quakes = L.control({position: 'bottomright'});
+    var colorScale = d3.scaleQuantile().domain([max, min]).range(colors);
+    var thresholds = colorScale.quantiles().map(function (i) { return i.toFixed(2)});
+
+    legend_quakes.onAdd = function (map) {    
+    var div = L.DomUtil.create('div', 'info legend'),
+        grades = [min, thresholds[0], thresholds[1], max],
+        labels = ['<strong>Categories</strong>'];
+    
+    // loop through our density intervals and generate a label with a colored square for each interval
+    for (var i = 0; i < (grades.length -1); i++) {
+        div.innerHTML += labels.push('<i style="background:' + colorScale(grades[i]) + '"></i> ' +
+        grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>': '+'));
+        }
+        div.innerHTML = labels.join('<br>');
+    
+        return div;
+    };
+
+    legend_quakes.addTo(myMap)
   }
