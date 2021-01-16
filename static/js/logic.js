@@ -84,6 +84,7 @@ function createFeatures(earthquakeData) {
       collapsed: false
     }).addTo(myMap);
 
+    // Add earthquake marker legend
     var legend_quakes = L.control({position: 'bottomright'});
     var colorScale = d3.scaleQuantile().domain([max, min]).range(colors);
     var thresholds = colorScale.quantiles().map(function (i) { return i.toFixed(2)});
