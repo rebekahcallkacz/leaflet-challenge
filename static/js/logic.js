@@ -1,5 +1,5 @@
 // Import in tectonic plate geoJSON url
-var tect_data_url = "static/tect-plates.json"
+var tect_data_url = "tect-plates.json"
 
 // URL to retrieve data 
 var longUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson';
